@@ -1075,6 +1075,9 @@ window_realize_cb(GtkWidget *widget, gpointer user_data)
 
     if(!vnr_message_area_is_critical(VNR_MESSAGE_AREA(VNR_WINDOW(widget)->msg_area)))
     {
+        /* Update default zoom on first load so keep_zoom does not conflict */
+        uni_image_view_set_zoom_mode (UNI_IMAGE_VIEW(VNR_WINDOW(widget)->view), VNR_WINDOW(widget)->prefs->zoom);
+
         if ( VNR_WINDOW(widget)->prefs->start_maximized ) {
             vnr_window_open(VNR_WINDOW(widget), FALSE);
         } 
@@ -2522,7 +2525,7 @@ vnr_window_open (VnrWindow * window, gboolean fit_to_screen)
     {
         uni_image_view_set_zoom_mode (UNI_IMAGE_VIEW(window->view), VNR_PREFS_ZOOM_FIT);
     }
-    else if(window->prefs->zoom == VNR_PREFS_ZOOM_LAST_USED )
+    else if(window->prefs->keep_zoom)
     {
         uni_image_view_set_fitting (UNI_IMAGE_VIEW(window->view), last_fit_mode);
         zoom_changed_cb(UNI_IMAGE_VIEW(window->view), window);

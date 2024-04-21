@@ -87,6 +87,13 @@ toggle_reload_on_save_cb (GtkToggleButton *togglebutton, gpointer user_data)
 }
 
 static void
+toggle_keep_zoom_cb (GtkToggleButton *togglebutton, gpointer user_data)
+{
+    VNR_PREFS(user_data)->keep_zoom = gtk_toggle_button_get_active(togglebutton);
+    vnr_prefs_save(VNR_PREFS(user_data));
+}
+
+static void
 change_zoom_mode_cb (GtkComboBox *widget, gpointer user_data)
 {
     VNR_PREFS(user_data)->zoom = gtk_combo_box_get_active(widget);
@@ -167,6 +174,7 @@ static void
 vnr_prefs_set_default(VnrPrefs *prefs)
 {
     prefs->zoom = VNR_PREFS_ZOOM_SMART;
+    prefs->keep_zoom = FALSE;
     prefs->show_hidden = FALSE;
     prefs->dark_background = FALSE;
     prefs->fit_on_fullscreen = TRUE;
@@ -203,6 +211,7 @@ build_dialog (VnrPrefs *prefs)
     GtkToggleButton *fit_on_fullscreen;
     GtkBox *zoom_mode_box;
     GtkComboBoxText *zoom_mode;
+    GtkToggleButton *keep_zoom;
     GtkToggleButton *smooth_images;
     GtkToggleButton *confirm_delete;
     GtkToggleButton *reload_on_save;
@@ -264,6 +273,11 @@ build_dialog (VnrPrefs *prefs)
     gtk_toggle_button_set_active( reload_on_save, prefs->reload_on_save );
     g_signal_connect(G_OBJECT(reload_on_save), "toggled", G_CALLBACK(toggle_reload_on_save_cb), prefs);
 
+    /* Keep zoom between images checkbox */
+    keep_zoom = GTK_TOGGLE_BUTTON (gtk_builder_get_object (builder, "keep_zoom"));
+    gtk_toggle_button_set_active( keep_zoom, prefs->keep_zoom );
+    g_signal_connect(G_OBJECT(keep_zoom), "toggled", G_CALLBACK(toggle_keep_zoom_cb), prefs);
+
     /* Slideshow timeout spin button */
     slideshow_timeout = GTK_SPIN_BUTTON (gtk_builder_get_object (builder, "slideshow_timeout"));
     gtk_spin_button_set_value( slideshow_timeout, (gdouble)prefs->slideshow_timeout);
@@ -287,7 +301,6 @@ build_dialog (VnrPrefs *prefs)
     gtk_combo_box_text_append_text(zoom_mode, _("Smart Mode"));
     gtk_combo_box_text_append_text(zoom_mode, _("1:1 Mode"));
     gtk_combo_box_text_append_text(zoom_mode, _("Fit To Window Mode"));
-    gtk_combo_box_text_append_text(zoom_mode, _("Last Used Mode"));
     gtk_combo_box_set_active(GTK_COMBO_BOX(zoom_mode), prefs->zoom);
 
     gtk_box_pack_end (zoom_mode_box, GTK_WIDGET(zoom_mode), FALSE, FALSE, 0);
@@ -381,6 +394,7 @@ vnr_prefs_load (VnrPrefs *prefs, GError **error)
     }
 
     VNR_PREF_LOAD_KEY (zoom, integer, "zoom-mode", VNR_PREFS_ZOOM_SMART);
+    VNR_PREF_LOAD_KEY (keep_zoom, boolean, "keep-zoom", FALSE);
     VNR_PREF_LOAD_KEY (fit_on_fullscreen, boolean, "fit-on-fullscreen", TRUE);
     VNR_PREF_LOAD_KEY (show_hidden, boolean, "show-hidden", FALSE);
     VNR_PREF_LOAD_KEY (dark_background, boolean, "dark-background", FALSE);
@@ -469,6 +483,7 @@ vnr_prefs_save (VnrPrefs *prefs)
 
     conf = g_key_file_new();
     g_key_file_set_integer (conf, "prefs", "zoom-mode", prefs->zoom);
+    g_key_file_set_boolean (conf, "prefs", "keep-zoom", prefs->keep_zoom);
     g_key_file_set_boolean (conf, "prefs", "fit-on-fullscreen", prefs->fit_on_fullscreen);
     g_key_file_set_boolean (conf, "prefs", "show-hidden", prefs->show_hidden);
     g_key_file_set_boolean (conf, "prefs", "dark-background", prefs->dark_background);
